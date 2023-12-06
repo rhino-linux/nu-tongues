@@ -1,0 +1,44 @@
+name: Nu-Tongues Binary Generation
+
+on:
+  workflow_dispatch
+
+jobs:
+  build_amd64:
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    steps:
+    - uses: actions/checkout@v3.1.0
+
+    - name: Install needed packages
+      run: |
+        sudo rm -rf /var/lib/apt/lists/*
+        sudo sed -i 's/jammy/.\/devel/g' /etc/apt/sources.list
+        sudo apt-get update && sudo apt-get install rustc cargo -y
+
+    - name: Build
+      run: cargo build --target=x86_64-unknown-linux-gnu
+
+    - uses: actions/upload-artifact@v3.1.2
+      with:
+        name: nu-tongues (AMD64)
+        path: target/x86_64-unknown-linux-gnu
+        
+  build_arm64:
+    runs-on: buildjet-4vcpu-ubuntu-2204-arm
+    steps:
+    - uses: actions/checkout@v3.1.0
+
+    - name: Install needed packages
+      run: |
+        sudo rm -rf /var/lib/apt/lists/*
+        sudo sed -i 's/jammy/.\/devel/g' /etc/apt/sources.list
+        sudo apt-get update && sudo apt-get install rustc cargo -y
+
+    - name: Build
+      run: cargo build --target=aarch64-unknown-linux-gnu
+
+    - uses: actions/upload-artifact@v3.1.2
+      with:
+        name: nu-tongues (ARM64)
+        path: target/aarch64-unknown-linux-gnu
+
