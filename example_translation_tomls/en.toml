@@ -3,32 +3,29 @@ territory = "xx"
 modifier = "blank"
 
 [messages]
+# |'--- best practice involves a non-translated comment of the message's purpose
+# v
+# Says what language you are speaking.
+what_language = "This system speaks Global English."
 
+# Repeats whatever was said, with an added onemonopia of a parrot
+parrot = "($phrase), Squak!"
 
-found-matching = "Found ($matches) package(s) matching '(ansi color[208] bold)($search)(ansi reset)':\n"
-none-matching = "No packages found matching '(ansi color[208] bold)($search)(ansi reset)'!"
-install-select = "Selecting (ansi color[purple] bold)($package)(ansi reset) from (ansi color[purple] bold)($manager)(ansi reset) for installation."
-remove-select = "Selecting (ansi color[purple] bold)($package)(ansi reset) from (ansi color[purple] bold)($manager)(ansi reset) for removal."
-skipping = "Skipping (ansi color[purple] bold)($package)(ansi reset) from (ansi color[purple] bold)($manager)(ansi reset)."
+# Sends a red message
+red = "(ansi color[red])This should be red."
 
-[messages.invalid]
-integers = "None of the inputs you provided were integers less than or equal to ($number)!"
-number = "($number) is not a valid number!"
-repository = "($repo) is not a valid repository!"
-search-arguments = "(ansi color[purple])rhino-pkg ($subcommand)(ansi reset) requires at least one search term argument."
-subcommand = "'(ansi color[red])($subcommand)(ansi reset)' is not a valid sub-command! To see a list of valid sub-commands run '(ansi color[purple])rhino-pkg -h(ansi reset)'"
-no-subcommand = "(ansi color[purple] bold)rhino-pkg(ansi reset) needs a sub-command in order to run. To see these run '(ansi color[purple])rhino-pkg -h(ansi reset)'."
-package-number = "($number) is not a valid package number!"
+# Messages that communicate the weather
+[messages.weather]  # <---- message bundle (for organization purposes)
+# |'--- this command is accessed by weather.raining
+# v
+# Advises user to grab umbrella because of rain today
+raining = "Pack your umbrella, there are showers headed your way!"
 
+# Advises user to pack sunscreen because of the sun today
+sunny = "Get your sunscreen, the sun is pouring down all day today!"
 
-[messages.ask]
-sure =      "Are you sure?: ((ansi color[green] bold)y(ansi reset)/(ansi color[red] bold)N(ansi reset))"
-which-install =   "Select which package(s) to install [0-($index)]:"
-which-remove =    "Select which package(s) to remove [0-($index)]:"
-upgrade = "Are you sure you want to upgrade all packages?: ((ansi color[green] bold)y(ansi reset)/(ansi color[red] bold)N(ansi reset))"
-[messages.searching]
-apt =       "Searching (ansi color[green] bold)apt(ansi reset)…"
-pacstall =  "Searching (ansi color[yellow] bold)pacstall(ansi reset)…"
-snap =      "Searching (ansi color[red] bold)snap(ansi reset)…"
-flatpak =   "Searching (ansi color[cyan] bold)flatpak(ansi reset)…"
+# Makes reference to the video game Silent Hill while announcing fog
+foggy = "Drive carefully and yell for Cheryl, the fog is intense in this silent town."
 
+# Reports humidity    
+humidity = "The humidity is ($percent)% today!"
