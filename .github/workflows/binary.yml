@@ -18,10 +18,13 @@ jobs:
     - name: Build
       run: cargo build --target=x86_64-unknown-linux-gnu
 
+    - name: Prep for upload
+      run: mkdir -p builds/amd64 && cp target/x86_64-unknown-linux-gnu/debug/nu_plugin_nu-tongues builds/amd64
+
     - uses: actions/upload-artifact@v3.1.2
       with:
         name: nu-tongues (AMD64)
-        path: target/x86_64-unknown-linux-gnu
+        path: builds/amd64
         
   build_arm64:
     runs-on: buildjet-4vcpu-ubuntu-2204-arm
@@ -37,8 +40,11 @@ jobs:
     - name: Build
       run: cargo build --target=aarch64-unknown-linux-gnu
 
+    - name: Prep for upload
+      run: mkdir -p builds/arm64 && cp target/aarch64-unknown-linux-gnu/debug/nu_plugin_nu-tongues builds/arm64
+
     - uses: actions/upload-artifact@v3.1.2
       with:
         name: nu-tongues (ARM64)
-        path: target/aarch64-unknown-linux-gnu
+        path: builds/arm64
 
