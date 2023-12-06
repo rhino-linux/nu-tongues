@@ -18,10 +18,7 @@ use lazy_static::lazy_static;
 use nu_ansi_term::Color::{Fixed, Rgb};
 use nu_ansi_term::*;
 use nu_plugin::{serve_plugin, EvaluatedCall, LabeledError, MsgPackSerializer, Plugin};
-use nu_protocol::{
-    PluginSignature,  SyntaxShape, Type,
-    Value as NuValue,
-};
+use nu_protocol::{PluginSignature, SyntaxShape, Type, Value as NuValue};
 use regex::Regex;
 use serde::Deserialize;
 use std::env;
@@ -74,7 +71,7 @@ impl Plugin for Translate {
         let mut path = input
             .as_string()
             .expect("input of translate was not String");
-        
+
         //fixes path if its messed up
         if !path.ends_with("/") {
             path += "/";
@@ -97,13 +94,15 @@ impl Plugin for Translate {
         //generates the translation from that file, reading the whole file
         //optimiztion here possibly
         let language_toml: LanguageToml = toml::from_str(language_file_string.as_str()).unwrap();
-        
 
         //this TomlValue type allows the data to be treated as a table and a string simaltaneously
         let mut toml_value: TomlValue = toml::Value::Table(language_toml.messages);
         //loops through the path to get toml_value down to a String
         for key in msg_key.get_path().iter() {
-            toml_value = toml_value.get(key).expect(format!("no toml value found at {}", &key).as_str()).to_owned();
+            toml_value = toml_value
+                .get(key)
+                .expect(format!("no toml value found at {}", &key).as_str())
+                .to_owned();
         }
 
         //gets the string out
@@ -113,13 +112,20 @@ impl Plugin for Translate {
         let option = call.nth(1);
         if option.is_some() {
             let positionals = option.unwrap();
-            for (arg, val) in positionals.as_record().expect("positional args index 1 was not a record").iter() {
+            for (arg, val) in positionals
+                .as_record()
+                .expect("positional args index 1 was not a record")
+                .iter()
+            {
                 let parens = &("($".to_string() + &arg + ")").to_owned();
                 result = result.replace(parens, val.as_string().expect("one of the values in the position arg 1 record was not convertable to string").as_str());
             }
         }
         // For some reason the toml serde crate puts quotes on the ends of every string
-        result = result.trim_start_matches('"').trim_end_matches('"').to_string();
+        result = result
+            .trim_start_matches('"')
+            .trim_end_matches('"')
+            .to_string();
         //goes through and puts ANSI codes in the string
         let ansi_result = ansify_string(&result);
 
@@ -135,7 +141,6 @@ struct LanguageToml {
     modifier: String,
     messages: TomlTable,
 }
-
 
 struct PosixLanguage {
     language: String,
@@ -289,7 +294,6 @@ impl Display for MessageKey {
     }
 }
 
-
 fn base_10_str_to_u8(string: &str) -> u8 {
     u8::from_str_radix(string, 10)
         .expect("string that was expected to be a u8 was formatted incorrectly")
@@ -331,7 +335,7 @@ fn ansify_string<'a>(input_string: &'a String) -> String {
             if command.contains("blink") {
                 style = style.blink()
             }
-            
+
             style = ansi_compute_and_add_color(command, &style);
 
             if command.contains("reverse") {
@@ -421,7 +425,6 @@ fn nuvalue_to_string(nuvalue: $NuValue) -> Option<String> {
     }
 }
 */
-
 
 fn main() {
     serve_plugin(&mut Translate::new(), MsgPackSerializer);
