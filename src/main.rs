@@ -64,14 +64,10 @@ impl Plugin for Translate {
         //the call command must be "translate"
         assert_eq!(name, "translate");
         //gets the environmental variable $LANG and unwraps it
-        let posix_lang_string: String = env::var(LOCALE_LANG).expect("no $LANG variable");
-        let posix_lang: PosixLanguage =
-            PosixLanguage::new(posix_lang_string).expect("$LANG was not in POSIX format");
-
+        let mut posix_lang_string: String = env::var(LOCALE_LANG).expect("no $LANG variable");
         let mut path = input
             .as_string()
             .expect("input of translate was not String");
-
         //fixes path if its messed up
         if !path.ends_with("/") {
             path += "/";
@@ -85,28 +81,42 @@ impl Plugin for Translate {
                 .as_string()
                 .expect("positional param 0 of translate was not a string"),
         );
-        //takes in the dir input and searches all files in it for best translation file matching the user
-        //reads it to String
-        let best_file_path: String = posix_lang.get_best_file_path(path);
 
-        let language_file_string: String = read_to_string(&best_file_path)
-            .expect(format!("failed to open file at path {}", &best_file_path).as_str());
-        //generates the translation from that file, reading the whole file
-        //optimiztion here possibly
-        let language_toml: LanguageToml = toml::from_str(language_file_string.as_str()).unwrap();
+        //the inverse break condition
+        let mut fallback: bool = false;
+        let mut result: String = loop {
+            fallback = false;
+            let posix_lang: PosixLanguage = PosixLanguage::new(posix_lang_string.clone())
+                .expect("$LANG or toml's fallback was not in POSIX format");
 
-        //this TomlValue type allows the data to be treated as a table and a string simaltaneously
-        let mut toml_value: TomlValue = toml::Value::Table(language_toml.messages);
-        //loops through the path to get toml_value down to a String
-        for key in msg_key.get_path().iter() {
-            toml_value = toml_value
-                .get(key)
-                .expect(format!("no toml value found at {}", &key).as_str())
-                .to_owned();
-        }
+            //takes in the dir input and searches all files in it for best translation file matching the user
+            //reads it to String
+            let best_file_path: String = posix_lang.get_best_file_path(path.clone());
 
-        //gets the string out
-        let mut result: String = toml_value.to_string();
+            let language_file_string: String = read_to_string(&best_file_path)
+                .expect(format!("failed to open file at path {}", &best_file_path).as_str());
+            //generates the translation from that file, reading the whole file
+            //optimiztion here possibly
+            let language_toml: LanguageToml =
+                toml::from_str(language_file_string.as_str()).unwrap();
+
+            //this TomlValue type allows the data to be treated as a table and a string simaltaneously
+            let mut toml_value: TomlValue = toml::Value::Table(language_toml.messages);
+            //loops through the path to get toml_value down to a String
+            for key in msg_key.get_path().iter() {
+                toml_value = if let Some(thing) = toml_value.get(key) {
+                    thing.to_owned()
+                } else {
+                    //if translation file is incomplete, sets up loop for fallback
+                    fallback = true;
+                    posix_lang_string = language_toml.fallback;
+                    break;
+                }
+            }
+            if !fallback {
+                break toml_value.to_string();
+            }
+        };
 
         //variable processing in our string
         let option = call.nth(1);
@@ -139,6 +149,7 @@ struct LanguageToml {
     language: String,
     territory: String,
     modifier: String,
+    fallback: String,
     messages: TomlTable,
 }
 
@@ -166,19 +177,19 @@ impl PosixLanguage {
                 .name("territory")
                 .map_or("_xx", |m| &m.as_str())
                 .strip_prefix("_")
-                .unwrap()
+                .unwrap() //regex would have failed if this unwrap fails
                 .to_lowercase(),
             encoding: (&captures)
                 .name("encoding")
                 .map_or(".blank", |m| &m.as_str())
                 .strip_prefix(".")
-                .unwrap()
+                .unwrap() //regex would have failed if this unwrap fails
                 .to_lowercase(),
             modifier: (&captures)
                 .name("modifier")
                 .map_or("@blank", |m| &m.as_str())
                 .strip_prefix("@")
-                .unwrap()
+                .unwrap() //regex would have failed if this unwrap fails
                 .to_lowercase(),
         })
     }
